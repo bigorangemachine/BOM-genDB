@@ -1,6 +1,6 @@
 {
-  "name": "General Database",
-  "description": "Big Orange Machines's General Database - ",
+  "name": "BOM-genDB",
+  "description": "Big Orange Machines's General Database - A more flexible ORM (WIP).",
   "homepage": "https://github.com/bigorangemachine/BOM-genDB",
   "keywords": [
     "framework",
