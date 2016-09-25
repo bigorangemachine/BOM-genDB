@@ -27,5 +27,5 @@
     "url": "https://github.com/bigorangemachine/BOM-genDB.git"
   },
   "main": "index.js",
-  "version": "0.0.4"
+  "version": "0.0.3"
 }
