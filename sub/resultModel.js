@@ -5,9 +5,10 @@ module.exports = function(){//dependancies
     function genericDBResultStatus(opts){
         if(!opts){opts={};}
         var status_schema={
+                'identity':false,
                 'is_success':false,
                 'events':false,
-                'status': 'fail', //has rows/error! Give the rows/error!
+                'status': 'fail', //has rows/error! Give the rows/error! WIP
                 'info': false
             };
         for(var s in status_schema){//set status_schema default
@@ -17,11 +18,15 @@ module.exports = function(){//dependancies
     }
     genericDBResultStatus.prototype.identify=function(){
         var self=this;
-        if(self.events instanceof Array && self.events.length>0){
+        if(self.identity===false && self.events instanceof Array && self.events.length>0){
             var found_types=[],
                 found_err=false,
                 found_cols=[],
                 found_rows=[],
+                write_info={
+                    'num_affected':0,
+                    'inserted_id':false
+                },
                 field_types={
                     '000':'undefined',
                     '8':'number',
@@ -32,7 +37,7 @@ module.exports = function(){//dependancies
                 if(v.type==='fields' || v.type==='result' || v.type==='error'){
                     var pos_res=(v.type==='fields' || v.type==='result'?true:false);
                     v.args.forEach(function(va,ia,arra){
-                        if(pos_res && va instanceof Array){
+                        if(pos_res && va instanceof Array){//READ! -> COLUMNS (a schema essentially)
                             va.forEach(function(varg,iarg,arrarg){
                                 if(v.type==='result'){
                                     found_cols.push({
@@ -42,7 +47,10 @@ module.exports = function(){//dependancies
                                     });
                                 }
                             });
-                        }else if(pos_res && typeof(va)==='object'){
+                        }else if(pos_res && typeof(va)==='object' && va.constructor.name.toLowerCase()===('OkPacket').toLowerCase()){
+                            write_info.num_affected=va.affectedRows;
+                            write_info.inserted_id=(typeof(va.insertId)!=='undefined' && va.insertId!==0?va.insertId:write_info.inserted_id);//could insert id be a string? if its 0; its an indicator of no primary key
+                        }else if(pos_res && typeof(va)==='object'){//READ! -> ROWS (a collection of data)
                             var found_data=false;
                             for(var k in va){
                                 if(utils.obj_valid_key(va,k)){if(found_data===false){found_data={};}found_data[k]=va[k];}}
@@ -55,14 +63,18 @@ module.exports = function(){//dependancies
                 }
             });
             if(_.indexOf(found_types,'result')===-1 && _.indexOf(found_types,'fields')!==-1 && _.indexOf(found_types,'end')!==-1){
-                return {'status':'norows','cols':found_cols};
-            }else if(_.indexOf(found_types,'result')!==-1 && _.indexOf(found_types,'fields')!==-1 && _.indexOf(found_types,'end')!==-1){
-                return {'status':'result','cols':found_cols,'rows':found_rows};
-            }else if(_.indexOf(found_types,'error')!==-1){
-                return {'status':'error','error':found_err};
+                self.identity={'status':'norows','cols':found_cols};}
+            else if(_.indexOf(found_types,'result')!==-1 && _.indexOf(found_types,'fields')!==-1 && _.indexOf(found_types,'end')!==-1){
+                self.identity={'status':'result','cols':found_cols,'rows':found_rows};}
+            else if(_.indexOf(found_types,'error')!==-1){
+                self.identity={'status':'error','error':found_err};}
+            else if(_.indexOf(found_types,'result')!==-1){//writes?
+                self.identity=merge(true,{'status':'write'+(write_info.num_affected>1?'-multi':'')},write_info);
             }
+//console.log("==============================\n",self,"\n==============================\n");
+            return self.identity;
         }
-        return false;
+        return self.identity;
     };
     genericDBResultStatus.prototype.toString=function(){
         var self=this;

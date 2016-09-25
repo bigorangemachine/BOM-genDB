@@ -17,14 +17,15 @@
   ],
   "engines": { "node" : ">=4.0" },
   "dependencies": {
+    "mysql": "^2.10.0",
     "merge": "^1.2.0",
     "underscore": "^1.8.3",
-    "bom-utils": "git+https://github.com/bigorangemachine/BOM-nodejs-utils.git#v0.0.4"
+    "bom-utils": "git://github.com/bigorangemachine/BOM-nodejs-utils.git#v0.0.4"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/bigorangemachine/BOM-genDB.git"
   },
   "main": "index.js",
-  "version": "0.0.1"
+  "version": "0.0.4"
 }
