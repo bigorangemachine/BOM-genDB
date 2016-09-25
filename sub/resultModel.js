@@ -65,7 +65,7 @@ module.exports = function(){//dependancies
             if(_.indexOf(found_types,'result')===-1 && _.indexOf(found_types,'fields')!==-1 && _.indexOf(found_types,'end')!==-1){
                 self.identity={'status':'norows','cols':found_cols};}
             else if(_.indexOf(found_types,'result')!==-1 && _.indexOf(found_types,'fields')!==-1 && _.indexOf(found_types,'end')!==-1){
-                self.identity={'status':'result','cols':found_cols,'rows':found_rows};}
+                self.identity={'status':'dataset','cols':found_cols,'rows':found_rows};}
             else if(_.indexOf(found_types,'error')!==-1){
                 self.identity={'status':'error','error':found_err};}
             else if(_.indexOf(found_types,'result')!==-1){//writes?
