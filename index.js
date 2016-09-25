@@ -509,20 +509,20 @@ if(!self.silent){console.warn("[genericDB] Should be checking colum types here. 
         //     if(!self.silent){console.warn("[GENERICDB] Where build in 'append' failed. "+e.toString());}
         // }
         if(found>0){//valid keys found (white list)
-            var inc=0;
+            var inc=0;//only for string control
             for(var key in transform_obj.clean){
                 if(utils.obj_valid_key(transform_obj.clean, key) && _.indexOf(insert_cols,key)!==-1){
-                    if(inc!=0){sql_insert=sql_insert+', ';}
+                    if(inc!=0){sql_insert=sql_insert+', ';sql_insert_vals=sql_insert_vals+', ';}
                     sql_insert=sql_insert+'`'+key+'`';
-                    sql_insert_vals=sql_insert_vals+''+transform_obj.clean[key];
+                    sql_insert_vals=sql_insert_vals+transform_obj.clean[key];
                     clean_data[key]=transform_obj.clean[key];
                     inc++;
                 }
             }
-            sql_insert=utils.check_strip_last(sql_insert,',');
+            sql_insert=sql_insert;
 // var strtdstr=') VALUES (';//tmp
 // sql_insert_vals=strtdstr+utils.check_strip_first(sql_insert_vals, strtdstr)+'),('+utils.check_strip_first(sql_insert_vals, strtdstr);
-            sql_insert_vals=utils.check_strip_last(sql_insert_vals,',');
+            sql_insert_vals=sql_insert_vals;
             sql_full=sql_insert + sql_insert_vals + sql_insert_end;
         }
 
