@@ -427,7 +427,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
         }.bind(self);
     };
 
-    genericDB.prototype.build_select=function(){
+    genericDB.prototype.build_select=function(dataObj){
         var self=this,
             context_key=self.main_table(),
             table_string=self.table_index[context_key].table_name,
@@ -437,7 +437,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
             select_cols=[];
         for(var c=0;c<all_cols.length;c++){
             var key=all_cols[c];
-            if(utils.obj_valid_key(dataObj,key)){
+            if(!dataObj || (typeof dataObj==='object' && utils.obj_valid_key(dataObj,key))){
                 if(count!=0){sql_select=sql_select+', ';}
                 sql_select=sql_select+'`'+self.table_index[context_key].table_name+'`.'+ key +' AS '+key;
                 select_cols.push(key);
@@ -458,7 +458,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
         var base_cols=self.column_schema_cols('base', context_key),
             all_cols=self.column_schema_cols('all', context_key),
             clean_data={},
-            select_result=self.build_select(),
+            select_result=self.build_select(dataObj),
             select_cols=select_result.sql.cols,
             count=select_result.cols.length,
             sql_select=select_result.sql.select,
