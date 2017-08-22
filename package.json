@@ -19,7 +19,7 @@
     "node": ">=4.0"
   },
   "dependencies": {
-    "bom-utils": "git://github.com/bigorangemachine/BOM-nodejs-utils.git#v0.0.4",
+    "bom-utils": "git://github.com/bigorangemachine/BOM-nodejs-utils.git#v0.0.7",
     "compare-versions": "^3.0.1",
     "merge": "^1.2.0",
     "mysql": "^2.10.0",
@@ -30,5 +30,5 @@
     "url": "https://github.com/bigorangemachine/BOM-genDB.git"
   },
   "main": "index.js",
-  "version": "0.0.3"
+  "version": "0.0.4"
 }

@@ -362,7 +362,8 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
                 events.push({'type':typeIn,'args':_args});
                 do_next();
             };
-        if(typeof(callbacksIn)==='function'){callbacksIn={'done':callbacksIn};}//if passed lazily
+        callbacksIn=transformFuncToDone(callbacksIn);
+        // if(typeof(callbacksIn)==='function'){callbacksIn={'done':callbacksIn};}//if passed lazily
         for(var k in callbacksIn){//callback system within
             if(utils.obj_valid_key(callbacks,k)){callbacks[k]=callbacksIn[k];}}
 
@@ -417,6 +418,34 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
         });
     };
 
+    genericDB.prototype.get=function(callbacks, doDebug){//returns function only!
+        var self=this,
+            sql_full=self.build_select()+self.build_limit();
+        callbacks=transformFuncToDone(callbacks);
+        return function(lastCall){
+            self.apply_callback(new genericDBQueryInfo({'result':mysql.query(sql_full),'sql':sql_full,'data':{},'type':'read'}), callbacks, lastCall);//, doDebug
+        }.bind(self);
+    };
+
+    genericDB.prototype.build_select=function(){
+        var self=this,
+            context_key=self.main_table(),
+            table_string=self.table_index[context_key].table_name,
+            sql_select='',
+            sql_from='FROM `'+table_string+'` ',
+            all_cols=self.column_schema_cols('all', context_key),
+            select_cols=[];
+        for(var c=0;c<all_cols.length;c++){
+            var key=all_cols[c];
+            if(utils.obj_valid_key(dataObj,key)){
+                if(count!=0){sql_select=sql_select+', ';}
+                sql_select=sql_select+'`'+self.table_index[context_key].table_name+'`.'+ key +' AS '+key;
+                select_cols.push(key);
+            }
+        }
+        return {'sql':{'select':sql_select, 'from':sql_from},'cols':select_cols};
+    };
+
     genericDB.prototype.find=function(dataObj,callbacks, doDebug){//returns function only!
         var self=this,
             context_key=self.main_table(),
@@ -424,22 +453,20 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
 //if(doDebug){console.log("[GENDB] context_key ",context_key," this.table_index: ",this.table_index,"\nutils.array_keys(self.table_index)[0] ",utils.array_keys(self.table_index)[0]);}
 //console.log('find() dataObj',dataObj);
         if(typeof(dataObj)!=='object'){return false;}//no data
-        if(typeof(callbacks)==='function'){callbacks={'done':callbacks};}//if passed lazily
-        var sql_select='SELECT ',
-            base_cols=self.column_schema_cols('base', context_key),
-            sql_from='FROM `'+table_string+'` ',
+        callbacks=transformFuncToDone(callbacks);
+        // if(typeof(callbacks)==='function'){callbacks={'done':callbacks};}//if passed lazily
+        var base_cols=self.column_schema_cols('base', context_key),
             all_cols=self.column_schema_cols('all', context_key),
-            count=0,
-            select_cols=[],
-            clean_data={};
+            clean_data={},
+            select_result=self.build_select(),
+            select_cols=select_result.sql.cols,
+            count=select_result.cols.length,
+            sql_select=select_result.sql.select,
+            sql_from=select_result.sql.from;
         for(var c=0;c<all_cols.length;c++){
             var key=all_cols[c];
             if(utils.obj_valid_key(dataObj,key)){
-                if(count!=0){sql_select=sql_select+', ';}
-                sql_select=sql_select+'`'+table_string+'`.'+ key +' AS '+key;
-                select_cols.push(key);
                 clean_data[key]=dataObj[key];
-                count++;
             }
         }
 
@@ -449,7 +476,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
             transform_obj=self.where_transform(dataObj, context_key, function(key, whereCount){
                 if(_.indexOf(base_cols,key)!==-1 && _.indexOf(select_cols,key)===-1){//if base key and unused
                     if(count!=0){sql_select=sql_select+', ';}
-                    sql_select=sql_select+'`'+table_string+'`.'+ key +' AS '+key;
+                    sql_select=sql_select+'`'+self.table_index[context_key].table_name+'`.'+ key +' AS '+key;
                     select_cols.push(key);
                     count++;
                 }
@@ -469,7 +496,7 @@ if(doDebug){console.log('====== '+context_key+' ||| cont ZERO: transform_obj.cou
         }
 
         var row_count=(utils.obj_valid_key(dataObj,'limit') && typeof(dataObj.limit)==='object' && utils.obj_valid_key(dataObj.limit,'row_count')?dataObj.limit.row_count:self.sql_default.limit.row_count),
-            sql_limit=sql_limit=self.build_limit(dataObj),
+            sql_limit=self.build_limit(dataObj),
             sql_order_by=(utils.obj_valid_key(dataObj,'order_by')?'ORDER BY '+dataObj.order_by:'');// && _.indexOf(all_cols, dataObj.order_by)!==-1 //utils.check_strip_last(utils.check_strip_last(dataObj.order_by,' DESC'),' ASC')
         sql_order_by=(utils.obj_valid_key(dataObj,'group_by')?'GROUP BY '+dataObj.group_by + ' ' + sql_order_by:sql_order_by);// && _.indexOf(all_cols, dataObj.group_by)!==-1
 if(doDebug){console.log('find() SEGMENTED SQL ',dataObj,"\n",'sql_select',sql_select+"\n",'sql_from',sql_from+"\n",'sql_where',sql_where+"\n",'sql_order_by',sql_order_by+"\n",'sql_limit',sql_limit);}
@@ -484,7 +511,8 @@ if(doDebug){console.log("\n\t",'============== find() SQL: ============== ',"\n"
     genericDB.prototype.append=function(dataObj,callbacks,doDebug){
         var self=this;
         if(typeof(dataObj)!=='object'){throw new Error("[GENERICDB] Append was not passed an object as the first argument.");return false;}//no data
-        if(typeof(callbacks)==='function'){callbacks={'done':callbacks};}//if passed lazily
+        callbacks=transformFuncToDone(callbacks);
+        // if(typeof(callbacks)==='function'){callbacks={'done':callbacks};}//if passed lazily
         var context_key=self.main_table(),
             table_string=self.table_index[context_key].table_name,
             sql_insert='INSERT INTO `'+table_string+'`(',
@@ -542,6 +570,15 @@ if(doDebug){console.log("\n\t",'============== OUTPUT append(): ============== '
             };
         return output_func.bind(self);
     };
+
+    genericDB.prototype.set_index=function(dataObj,callbacks, doDebug){//check all schema for indexes and update them
+        var self=this;
+    };
+
+    genericDB.prototype.remove_index=function(dataObj,callbacks, doDebug){//check all schema for indexes and remove them
+        var self=this;
+    };
+
     genericDB.prototype.update=function(dataObj,callbacks,tableName,errArr,doDebug){//NEEDS UPDATING
         var self=this;
         tableName=(typeof(tableName)!=='string'?self.main_table():tableName);
@@ -737,3 +774,8 @@ console.log("\n\n========= genericDB.prototype.update =========\n\n");
     };
     return genericDB;
 };
+
+
+function transformFuncToDone(func){
+    return (typeof(func)==='function'?{'done':callbacks}:func;}//if passed lazily
+}

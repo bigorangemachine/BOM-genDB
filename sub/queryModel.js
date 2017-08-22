@@ -13,7 +13,7 @@ module.exports = function(){//dependancies
             };
         for(var s in query_schema){//set query_schema default
             if(utils.obj_valid_key(query_schema, s)){this[s]=typeof(opts[s])!=='undefined'?opts[s]:query_schema[s];}}
-        if(_.indexOf(typewhitelist,this.type)===-1){this.type=false;throw new Error("[genericDBQuery] invalid tyep provided");}
+        if(_.indexOf(typewhitelist,this.type)===-1){this.type=false;throw new Error("[genericDBQuery] invalid type provided");}
     }
     genericDBQuery.prototype.toString=function(){
         var self=this;
