@@ -777,5 +777,5 @@ console.log("\n\n========= genericDB.prototype.update =========\n\n");
 
 
 function transformFuncToDone(func){
-    return (typeof(func)==='function'?{'done':callbacks}:func;}//if passed lazily
+    return (typeof(func)==='function'?{'done':callbacks}:func);//if passed lazily
 }
