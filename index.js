@@ -421,7 +421,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
     genericDB.prototype.get=function(callbacks, doDebug){//returns function only!
         var self=this,
             select_sql=self.build_select().sql,
-            sql_full=select_sql.select+' '+select_sql.from+' '+self.build_limit();
+            sql_full='SELECT '+select_sql.select+' '+select_sql.from+' '+self.build_limit();
         callbacks=transformFuncToDone(callbacks);
         return function(lastCall){
             self.apply_callback(new genericDBQueryInfo({'result':mysql.query(sql_full),'sql':sql_full,'data':{},'type':'read'}), callbacks, lastCall);//, doDebug
@@ -464,7 +464,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
             select_result=self.build_select(dataObj),
             select_cols=select_result.cols,
             count=select_result.cols.length,
-            sql_select=select_result.sql.select,
+            sql_select='SELECT '+select_result.sql.select,
             sql_from=select_result.sql.from;
         for(var c=0;c<all_cols.length;c++){
             var key=all_cols[c];
