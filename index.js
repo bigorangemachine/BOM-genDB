@@ -429,6 +429,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
 
     genericDB.prototype.build_select=function(dataObj){
         var self=this,
+            count=0,
             context_key=self.main_table(),
             table_string=self.table_index[context_key].table_name,
             sql_select='',
@@ -441,6 +442,7 @@ opts.silent=(typeof(opts.silent)==='boolean'?opts.silent:true);//temp ^_^
                 if(count!=0){sql_select=sql_select+', ';}
                 sql_select=sql_select+'`'+self.table_index[context_key].table_name+'`.'+ key +' AS '+key;
                 select_cols.push(key);
+                count++;
             }
         }
         return {'sql':{'select':sql_select, 'from':sql_from},'cols':select_cols};
